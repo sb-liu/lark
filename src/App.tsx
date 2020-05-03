@@ -1,12 +1,17 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Button from '@material-ui/core/Button';
+import Page from "./components/Page";
 
 function App() {
     return (
-        <Button variant="contained" color="primary">
-            Hello World
-        </Button>
+        <div>
+
+            {/*             <Button variant="contained" color="primary">
+                Hello World
+        </Button> */}
+            <Page />
+        </div>
     );
 }
 
