@@ -3,17 +3,17 @@ import ReactDOM from 'react-dom';
 import Button from '@material-ui/core/Button';
 import Page from "./components/Page";
 
-function App() {
+/* function App() {
     return (
         <div>
 
-            {/*             <Button variant="contained" color="primary">
+            <Button variant="contained" color="primary">
                 Hello World
-        </Button> */}
+        </Button>
             <Page />
-        </div>
+        </div >
     );
-}
+} */
 
-ReactDOM.render(<App />, document.getElementById('root'));
+//ReactDOM.render(<App />, document.getElementById('root'));
 //ReactDOM.render(<App />, document.querySelector('#app'));
