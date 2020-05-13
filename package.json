@@ -97,6 +97,7 @@
     "electron-squirrel-startup": "^1.0.0",
     "equation-editor-react": "^0.0.6",
     "react": "^16.13.1",
+    "react-contenteditable": "^3.3.4",
     "react-dom": "^16.13.1"
   }
 }

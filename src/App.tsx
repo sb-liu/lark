@@ -1,7 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Button from '@material-ui/core/Button';
-import Page from "./components/Page";
+//import Page from "./components/Page";
+import LarkInputLine from "./components/Editor/Editor";
 
 function App() {
     return (
@@ -10,7 +11,7 @@ function App() {
             {/*             <Button variant="contained" color="primary">
                 Hello World
         </Button> */}
-            <Page />
+            <LarkInputLine />
         </div>
     );
 }
