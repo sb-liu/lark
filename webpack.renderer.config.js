@@ -8,7 +8,17 @@ rules.push({
 
 module.exports = {
   module: {
-    rules,
+    rules: [
+      {
+        test: /\.(js|jsx|ts|tsx)$/,
+        exclude: /(node_modules)/,
+        loader: "babel-loader",
+      },
+      {
+        test: /\.css$/i,
+        use: ['style-loader', 'css-loader'],
+      },
+    ]
   },
   plugins: plugins,
   resolve: {

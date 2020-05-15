@@ -10,6 +10,11 @@ h1 {
     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 }
 
+.blockElementId {
+    color: grey;
+    font-weight: bold;
+}
+
 [contentEditable=true]:empty:not(:focus):before{
     content:attr(placeholder)
 }
