@@ -1,5 +1,6 @@
 import React from 'react';
-import ContentEditable, { ContentEditableEvent } from 'react-contenteditable'
+import LarkContentEditable, { ContentEditableEvent } from '../Containers/LarkContentEditable'
+//import  from 'react-contenteditable'
 import Grid from '@material-ui/core/Grid';
 import Box from '@material-ui/core/Box';
 import Button from '@material-ui/core/Button';
@@ -204,7 +205,7 @@ class BlockElementID extends React.Component<BlockElementIDProps, BlockElementID
 
     }
     render = () => {
-        return <ContentEditable
+        return <LarkContentEditable
             onFocus={this.focusHandler}
             innerRef={this.blockElementIDRef}
             html={this.props.block_element_id} // innerHTML of the editable div
@@ -230,7 +231,7 @@ type InputRegionProps = {
 type InputRegionState = {
     html: string,
     should_focus: boolean,
-    caret_pos: number,
+    caret_pos_before_rerender: number,
 }
 
 class InputRegion extends React.Component<InputRegionProps, InputRegionState> {
@@ -243,10 +244,15 @@ class InputRegion extends React.Component<InputRegionProps, InputRegionState> {
             html: "",
             // By default on program load input region doesn't have focus
             should_focus: true,
-            caret_pos: 0,
+            caret_pos_before_rerender: 0,
         };
     };
 
+    /*     updateCaretPos = () => {
+            this.setState({
+                caret_pos: getCaretCharacterOffsetWithin(this.inputRegionReftest?.current)
+            })
+        } */
     focus = () => {
         // Helper function to set focus
         console.log("Input region focus Function call")
@@ -270,41 +276,34 @@ class InputRegion extends React.Component<InputRegionProps, InputRegionState> {
         })
     }
 
-    componentDidMount() {
-        // Set focus on render
-        console.log("CURSOR UPDATER")
-        //this.focus();
-        //this.cursorToEnd();
-    }
-
-    componentWillReceiveProps() {
-        var new_caret_pos: number = getCaretCharacterOffsetWithin(this.inputRegionReftest.current);
-        console.log("CARET POS", new_caret_pos);
-        if (this.state.caret_pos != new_caret_pos) {
-            this.setState({
-                caret_pos: new_caret_pos
-            })
+    componentWillReceiveProps(newProps: InputRegionProps) {
+        if (newProps.input_region_tag_style != this.props.input_region_tag_style) {
+            var new_caret_pos: number = getCaretCharacterOffsetWithin(this.inputRegionReftest.current);
+            console.log("CARET POS", new_caret_pos);
+            if (this.state.caret_pos_before_rerender != new_caret_pos) {
+                this.setState({
+                    caret_pos_before_rerender: new_caret_pos
+                })
+            }
         }
-
     }
+
     componentDidUpdate(oldProps: InputRegionProps) {
         //console.log("Input region UPDATE old(", oldProps, ") new(", this.props, ")")
         // Focus gets lost when tag style changes causing a rerender, so we need to explicitly
         // Set focus when this happens and move the cursor to the end
         if (oldProps.input_region_tag_style != this.props.input_region_tag_style) {
-
-            // Issues here, need to account for when block elmenet id is modified and text is in
-            // input region
-            //this.cursorToEnd();
-            var new_caret_pos: number = getCaretCharacterOffsetWithin(this.inputRegionReftest.current);
             this.focus();
-            moveCaretTo(this.inputRegionReftest.current, this.state.caret_pos);
+
+            var new_caret_pos: number = getCaretCharacterOffsetWithin(this.inputRegionReftest.current);
+            moveCaretTo(this.inputRegionReftest.current, this.state.caret_pos_before_rerender);
         }
+
     }
 
     render() {
         return (
-            <ContentEditable
+            <LarkContentEditable
                 innerRef={this.inputRegionReftest}
                 html={this.props.html} // innerHTML of the editable div
                 disabled={false}       // use true to disable editing
@@ -313,7 +312,6 @@ class InputRegion extends React.Component<InputRegionProps, InputRegionState> {
                 tagName={this.props.input_region_tag_style} // Use a custom HTML tag (uses a div by default)
                 placeholder="type something"
                 onFocus={this.props.handleFocus}
-
             />
         );
 
@@ -357,9 +355,15 @@ export default class LarkInputLine extends React.Component<LarkInputLineProps, L
     }
 
     onBlockElIDRevealerClicked = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-        /*         if (this.state.block_element_id_visible == false) {
-                    this.setState({ block_element_id_visible: true })
-                } */
+        if (this.state.block_element_id_visible == false) {
+            var revealed_text: string = "<span class='blockElementId'>" + this.state.block_element_id + "</span>" + this.state.input_region_text;
+            console.log("REVEALED TEXT ", revealed_text);
+            this.setState({
+                block_element_id_visible: true,
+                input_region_html: revealed_text,
+            })
+        }
+
     }
 
 
@@ -414,97 +418,66 @@ export default class LarkInputLine extends React.Component<LarkInputLineProps, L
         var curr_text: string = event.currentTarget.textContent;
         // If the text in our input region hasn't changed we don't need to do anything
         // the onChange event was probably called because of extraneous reasons like pressing shift etc.
-        if (this.state.block_element_id + this.state.input_region_text != curr_text) {
-            console.log("Curr text |", curr_text, "|");
-            this.hasBlockElementIdentifier(curr_text);
 
-            var [text_is_block, new_block_element_id, new_input_region_tag_style] = this.hasBlockElementIdentifier(curr_text);
-            var input_region_raw_text: string = curr_text.substr(new_block_element_id.length, curr_text.length);
-            var new_input_region_html: string = "";
-            // Text in input region has a block element identifier
-            if (text_is_block == true) {
-                new_input_region_html = "<span class='blockElementId'>" + new_block_element_id + "</span>" + input_region_raw_text;
-            } else {
-                new_input_region_html = curr_text
+        if (this.state.block_element_id_visible == true) {
+            if (this.state.block_element_id + this.state.input_region_text != curr_text) {
+                console.log("Curr text |", curr_text, "|");
+                this.hasBlockElementIdentifier(curr_text);
+
+                var [text_is_block, new_block_element_id, new_input_region_tag_style] = this.hasBlockElementIdentifier(curr_text);
+                var input_region_raw_text: string = curr_text.substr(new_block_element_id.length, curr_text.length);
+                var new_input_region_html: string = "";
+                // Text in input region has a block element identifier
+                if (text_is_block == true) {
+                    new_input_region_html = "<span class='blockElementId'>" + new_block_element_id + "</span>" + input_region_raw_text;
+                } else {
+                    new_input_region_html = curr_text
+                }
+
+                this.setState({
+                    is_block_element: text_is_block,
+                    block_element_id: new_block_element_id,
+                    input_region_text: input_region_raw_text,
+                    input_region_html: new_input_region_html,
+                    input_region_tag_style: new_input_region_tag_style,
+                })
             }
-
+        } else {
+            console.log("INV |", curr_text, "|");
             this.setState({
-                is_block_element: text_is_block,
-                block_element_id: new_block_element_id,
-                input_region_text: input_region_raw_text,
-                input_region_html: new_input_region_html,
-                input_region_tag_style: new_input_region_tag_style,
+                input_region_text: curr_text,
+                input_region_html: curr_text,
             })
         }
-        /*         if (curr_text.length > 0) {
-                    var [text_is_block, new_block_element_id, new_input_region_tag_style] = hasBlockElementIdentifier(curr_text);
-                    console.log("Curr Text (", curr_text, ") has block id ", text_is_block);
-                    var input_region_raw_text: string = curr_text.substr(this.state.block_element_id.length, curr_text.length);
-                    var new_input_region_html: string = "";
-                    // Text in input region has a block element identifier
-                    if (text_is_block == true) {
-                        new_input_region_html = "<span class='blockElementId'>" + new_block_element_id + "</span>";
-                    } else {
-                        new_input_region_html = curr_text
-                    }
-        
+    }
+
+    handleInputRegionKeyPresses = (event: React.KeyboardEvent<HTMLDivElement>) => {
+
+        if (this.state.block_element_id_visible == true) {
+            if (this.state.is_block_element == true) {
+                // If space bar pressed
+                if (event.keyCode == 32) {
+                    //event.preventDefault();
+                    //this.inputRegionRef.current?.updateCaretPos();
                     this.setState({
-                        is_block_element: text_is_block,
-                        block_element_id: new_block_element_id,
-                        input_region_html: new_input_region_html,
-                        input_region_tag_style: new_input_region_tag_style,
+                        block_element_id_visible: false,
+                        input_region_html: this.state.input_region_text,
                     })
-        
                 }
-         */
-
-
-        /* 
-        var input_region_raw_text: string = curr_text.substr(this.state.block_element_id.length, curr_text.length);
-        var new_input_region_html: string = "";
-        // Text in input region has a block element identifier
-        if (text_is_block == true) {
-            new_input_region_html = "<span class='blockElementId'>" + new_block_element_id + "</span>";
+            }
         } else {
-            new_input_region_html = curr_text
+            // Handle ctrl-a i.e. select all event.key == "a" also works (keycode 65)
+            if (event.ctrlKey && event.key == "a") {
+                console.log("SELECT ALL")
+                var revealed_text: string = "<span class='blockElementId'>" + this.state.block_element_id + "</span>" + this.state.input_region_text;
+                console.log("REVEALED TEXT ", revealed_text);
+                this.setState({
+                    block_element_id_visible: true,
+                    input_region_html: revealed_text,
+                })
+            }
         }
-     
-        this.setState({
-            is_block_element: text_is_block,
-            block_element_id: new_block_element_id,
-            input_region_html: new_input_region_html,
-            input_region_tag_style: new_input_region_tag_style,
-        })
-     
-    } else {
-        // Input region text without block id and no html tags
-        var input_region_raw_text: string = curr_text.substr(this.state.block_element_id.length, curr_text.length);
-        var new_input_region_html: string = curr_text;
-        // If the text in the input region has a block element identifier at the beginning
-        // then we'll wrap the identifier with a span element (so the identifier can be styled with css)
-        if (this.state.is_block_element == true)
-            new_input_region_html = "<span class='blockElementId'>" + this.state.block_element_id + "</span>" + input_region_raw_text;
-     
-        this.setState({
-            input_region_text: input_region_raw_text,
-            input_region_html: new_input_region_html,
-        })
     }
-    testdebug++;
-    } */
-        /*         else {
-                    this.setState({
-                        is_block_element: false,
-                        block_element_id: "",
-                        input_region_html: "",
-                        input_region_tag_style: "",
-                        input_region_text: "",
-                    })
-                } */
-        //this.setState({ input_region_html: "<span class='blockElementId'>Test</span>" });
-    }
-
-    handleInputRegionKeyPresses = (event: React.KeyboardEvent<HTMLDivElement>) => { }
 
     render() {
         return (
