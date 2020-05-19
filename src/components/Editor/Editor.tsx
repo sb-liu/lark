@@ -1,6 +1,5 @@
 import React from 'react';
 import LarkContentEditable, { ContentEditableEvent } from '../Containers/LarkContentEditable'
-import BlockElementID from './BlockElementID'
 import InputRegion from './InputRegion'
 
 import Grid from '@material-ui/core/Grid';
@@ -226,6 +225,10 @@ export default class LarkInputLine extends React.Component<LarkInputLineProps, L
                     input_region_html: revealed_text,
                 })
             }
+        }
+
+        if (event.keyCode == 8) {
+            console.log('DELETEEE');
         }
     }
 

@@ -1,9 +1,6 @@
-div[contenteditable="true"] {
+[contenteditable="true"] {
     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
-/*     margin: 50px;
-    min-height: 50px; */
-    /* border: 1px dashed #aaa; */
-    /* padding: 5px; */
+    outline: 0px solid transparent;
   }
 
 h1 {
