@@ -193,6 +193,13 @@ export default class LarkInputLine extends React.Component<LarkInputLineProps, L
             }
         } else {
             console.log("INV |", curr_text, "|");
+            
+            // Get the indicies of $$
+            let re = /\${2}/g;
+            let dollar;
+            while ((dollar = re.exec(curr_text)) != null) {
+                console.log("match found at " + dollar.index);
+            }
             this.setState({
                 input_region_text: curr_text,
                 input_region_html: curr_text,
